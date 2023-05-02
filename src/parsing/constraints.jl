@@ -48,7 +48,12 @@ function get_constraint_variables(str_constraint_variables, variables)
                 end
             end
         end
-        push!(constraint_variables, var[int_idx...]...)
+        vars = var[int_idx...]
+        if isa(vars, Array)
+            push!(constraint_variables, vars...)
+        else
+            push!(constraint_variables, vars)
+        end
     end
     return constraint_variables
 end
