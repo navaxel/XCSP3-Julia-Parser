@@ -91,10 +91,10 @@ end
 
 function parse_dimensions(dim::AbstractString)
     """
-    Get indexes from a string 'x[3][9][2]' or just '[3][9][2] in an array (here : [3,9,2])
+    Get indexes from a string 'x[3][9][2]' or just '[3][9][2]' in an array (here : [3,9,2])
 
     Args:
-        dim: string of type 'x[3][9][2]'
+        dim: string of type 'x[3][9][2]' or just '[3][9][2]'
 
     Returns:
         dim: Array [3,9,2]
