@@ -5,39 +5,50 @@ function parse_constraint(constraint::Node, variables::Dict{String, Any}, model:
 
     if tag == "allDifferent"
         str_constraint_variables = children(constraint)[1].value
-        allDiff_vars = get_all_variables(str_constraint_variables, variables)
+        allDiff_vars = get_constraint_variables(str_constraint_variables, variables)
+        con = SeaPearl.AllDifferent(allDiff_vars, trailer)
+        SeaPearl.addConstraint!(model, con)
     end
+
 end
 
-function get_all_variables(str_constraint_variables, variables)
-    constraint_variables = split(str_constraint_variables, " ")
-    all_variables = Dict()
-    for v in constraint_variables
 
-        rfind(v, "[")
-        id, idx = split(v, "[")
-        idx = split(idx, "]")[1]
+function get_constraint_variables(str_constraint_variables, variables)
+    constraint_variables = SeaPearl.IntVar[]
 
-        #all elements from the array are included
-        if idx == ""
-            var = variables[name]
-            for i in 1:length(var)
-                push!(all_variables, name * "[" * string(i) * "]")
-            end
+    for str_variable in split(str_constraint_variables, " ")
+        # Delete "]"
+        str = replace(str_variable, "]" => "")
+            
+        # Divide string into array of substring
+        str_vector = split(str, "[")
 
-        #only a subset form the array from index l to index u are included
-        else
-            bounds = split(idx, "..")
-            if length(bounds) == 1
-                push!(all_variables, name * "[" * bounds[1] * "]")
+        id, str_idx = str_vector[1], str_vector[2:end]
+
+        #Get array with id
+        var = variables[id]
+
+        int_idx = []
+        for i in str_idx
+            #All index have to be considered
+            if i == ""
+                push!(int_idx, [:][1])
             else
-                for i in parse(Int, bounds[1]):parse(Int, bounds[2])+1
-                    push!(all_variables, name * "[" * string(i) * "]")
+                bounds = split(i, "..")
+                lower_bound = parse(Int, bounds[1]) + 1
+
+                #A subset from the array is considered
+                if length(bounds) == 2
+                    upper_bound = parse(Int, bounds[2]) + 1
+                    push!(int_idx, [lower_bound:upper_bound][1])
+                
+                #Only one index is considered
+                else
+                    push!(int_idx, lower_bound)
                 end
             end
         end
+        push!(constraint_variables, var[int_idx...]...)
     end
-    return all_variables
+    return constraint_variables
 end
-
-
